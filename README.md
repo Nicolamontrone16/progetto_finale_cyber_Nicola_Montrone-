@@ -47,7 +47,6 @@ Per esempio il server recupera dei dati sugli utenti da un altro server in esecu
 Rimodellare la funzionalità in modo tale da non poter lasciare spazio di modifica dell'url da parte di utenti malevoli. Implementare o migliorare la validazione delgli input.
 
 https://newsapi.org/docs/endpoints/top-headlines
-NewsAPI - api key 5fbe92849d5648eabcbe072a1cf91473
 
 ## Stored XSS Attack
 
@@ -58,4 +57,3 @@ Supponiamo che ci sia una misconfiguration a livello di CORS (config/cors.php) c
 
 ### Mitigazione
 Creare un meccanismo che filtri il testo prima di salvarlo e per essere sicuri anche in fase di visualizzazione dell'articolo.
-
