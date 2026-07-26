@@ -18,12 +18,13 @@ return new class extends Migration
             $table->boolean('is_writer')->after('is_revisor')->nullable()->default(false);
         });
 
-        User::create([
+        $admin = User::create([
             'name' => 'Admin',
             'email' => 'admin@theaulabpost.it',
             'password' => bcrypt('12345678'),
-            'is_admin' => true
         ]);
+        $admin->is_admin = true;
+        $admin->save();
     }
 
     /**

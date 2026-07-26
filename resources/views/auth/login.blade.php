@@ -1,81 +1,14 @@
-<x-layout>
-    <div class="container-fluid p-5 bg-secondary-subtle text-center">
-        <div class="row justify-content-center">
-            <div class="col-12">
-                <h1 class="display-1">Sign In</h1>
-            </div>
+<x-layout title="Accedi">
+    <section class="auth-section"><div class="container auth-grid">
+        <div class="auth-intro reveal"><p class="eyebrow">Bentornato</p><h1>Accedi al tuo spazio sicuro.</h1><p>Gestisci il profilo, segui la community e accedi agli strumenti dedicati al tuo ruolo.</p><div class="auth-decoration" aria-hidden="true"><span></span><span></span><span></span></div></div>
+        <div class="auth-card reveal">
+            <h2>Accedi</h2><p>Inserisci le credenziali del tuo account.</p>
+            <form action="{{ route('login') }}" method="POST">@csrf
+                <div class="form-group"><label for="email">Email</label><input type="email" class="form-control @error('email') is-invalid @enderror" id="email" name="email" value="{{ old('email') }}" autocomplete="email" required>@error('email')<span class="field-error" role="alert">{{ $message }}</span>@enderror</div>
+                <div class="form-group"><label for="password">Password</label><div class="password-control"><input type="password" class="form-control @error('password') is-invalid @enderror" id="password" name="password" autocomplete="current-password" required><button type="button" data-password-toggle="password" aria-label="Mostra password">Mostra</button></div>@error('password')<span class="field-error" role="alert">{{ $message }}</span>@enderror</div>
+                <button type="submit" class="btn btn-primary btn-lg w-100">Accedi</button>
+            </form>
+            <p class="auth-switch">Non hai ancora un account? <a href="{{ route('register') }}">Registrati</a></p>
         </div>
-    </div>
-    <div class="container my-5">
-        <div class="row justify-content-center">
-            <div class="col-12 col-md-8">
-                <form action="{{route('login')}}" method="POST" class="card p-5 shadow">
-                    @csrf
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" name="email" value="{{old('email')}}">
-                        @error('email')
-                            <span class="text-danger">{{$message}}</span>
-                        @enderror
-                    </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password" name="password">
-                        @error('password')
-                            <span class="text-danger">{{$message}}</span>
-                        @enderror
-                    </div>
-                    <div class="mt-3 d-flex justify-content-center flex-column align-items-center">
-                        <button type="submit" class="btn btn-outline-secondary">Sign In</button>
-                        <p class="mt-2">Don't you have an account yet? <a href="{{route('register')}}" class="text-secondary">Register here</a></p>
-                    </div>
-                </form>
-            </div>
-            <div class="col-12 col-md-4">
-                <table class="table">
-                    <thead>
-                      <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">Email</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <th scope="row">1</th>
-                        <td>user@aulab.it</td>
-                      </tr>
-                      <tr>
-                        <th scope="row">2</th>
-                        <td>writer@aulab.it</td>
-                      </tr>
-                      <tr>
-                        <th scope="row">3</th>
-                        <td>revisor@aulab.it</td>
-                      </tr>
-                      <tr>
-                        <th scope="row">4</th>
-                        <td>admin@aulab.it</td>
-                      </tr>
-                      <tr>
-                        <th scope="row">5</th>
-                        <td>super.admin@aulab.it</td>
-                      </tr>
-                      <tr>
-                        <th scope="row">5</th>
-                        <td>kvrs@gmail.com</td>
-                      </tr>
-                    </tbody>
-                </table>
-                <div>
-                    Instructions:
-                    <ul>
-                        <li>Set aliases in hosts file [read documentation]</li>
-                        <li>For user/writer/revisor go to <a href="http://cyber.blog:8000">http://cyber.blog:8000</a></li>
-                        <li>For admin/super admin go to <a href="http://internal.admin:8000">http://internal.admin:8000</a></li>
-                        <li>Passowrd is <b>password</b> for every user</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
+    </div></section>
 </x-layout>

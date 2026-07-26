@@ -1,65 +1,20 @@
-<x-layout>
-    <div class="container my-5">
-        <div class="row justify-content-center">
-            <div class="col-12 col-md-8">
-                <form action="{{route('articles.store')}}" method="POST" class="card p-5 shadow" enctype="multipart/form-data">
-                    <h2>Write an amazing article, c'mon!</h2>
-                    @csrf
-                    <div class="mb-3">
-                        <label for="title" class="form-label">Title</label>
-                        <input type="text" name="title" class="form-control" id="title" value="{{old('title')}}">
-                        @error('title')
-                            <span class="text-danger">{{$message}}</span>
-                        @enderror
-                    </div>
-                    <div class="mb-3">
-                        <label for="subtitle" class="form-label">Subtitle</label>
-                        <input type="text" name="subtitle" class="form-control" id="subtitle" value="{{old('subtitle')}}">
-                        @error('subtitle')
-                            <span class="text-danger">{{$message}}</span>
-                        @enderror
-                    </div>
-                    <div class="mb-3">
-                        <label for="image" class="form-label">Image</label>
-                        <input type="file" name="image" class="form-control" id="image">
-                        @error('image')
-                            <span class="text-danger">{{$message}}</span>
-                        @enderror
-                    </div>
-                    <div class="mb-3">
-                        <label for="category" class="form-label">Category</label>
-                        <select name="category" id="category" class="form-control">
-                            <option selected disabled>Choose category</option>
-                            @foreach ($categories as $category)
-                                <option value="{{$category->id}}">{{$category->name}}</option>
-                            @endforeach
-                        </select>
-                        @error('category')
-                            <span class="text-danger">{{$message}}</span>
-                        @enderror
-                    </div>
-                    <div class="mb-3">
-                        <label for="tags" class="form-label">Tags</label>
-                        <input type="text" name="tags" class="form-control" id="tags" value="{{old('tags')}}">
-                        <span class="small text-muted fst-italic">Comma separated tags please</span>
-                        @error('tags')
-                            <span class="text-danger">{{$message}}</span>
-                        @enderror
-                    </div>
-                    <div class="mb-3">
-                        <label for="body" class="form-label">Text</label>
-                        <textarea name="body" class="form-control" id="body" cols="30" rows="7">{{old('body')}}</textarea>
-                        @error('body')
-                            <span class="text-danger">{{$message}}</span>
-                        @enderror
-                    </div>
-                    <div class="mt-3 d-flex justify-content-center flex-column align-items-center">
-                        <button type="submit" class="btn btn-outline-secondary">Complete</button>
-                        <a href="{{route('homepage')}}" class="text-secondary mt-2">Back to home</a>
-                    </div>
-                </form>
+<x-layout title="Nuovo articolo">
+    <section class="content-section"><div class="container">
+        <x-page-header eyebrow="Writer studio" title="Crea un nuovo articolo" description="Trasforma la tua analisi in un contenuto chiaro, affidabile e pronto per la revisione." />
+        <form action="{{ route('articles.store') }}" method="POST" enctype="multipart/form-data" class="editor-layout">@csrf
+            <div class="editor-main">
+                <section class="surface-card form-section"><div class="form-section-heading"><span>01</span><div><h2>Informazioni principali</h2><p>Definisci titolo e promessa editoriale.</p></div></div>
+                    <div class="form-group"><label for="title">Titolo <span aria-hidden="true">*</span></label><input type="text" name="title" class="form-control @error('title') is-invalid @enderror" id="title" value="{{ old('title') }}" maxlength="255" data-character-count required><small class="char-counter" data-character-output="title">0 caratteri</small>@error('title')<span class="field-error">{{ $message }}</span>@enderror</div>
+                    <div class="form-group"><label for="subtitle">Sottotitolo <span aria-hidden="true">*</span></label><input type="text" name="subtitle" class="form-control @error('subtitle') is-invalid @enderror" id="subtitle" value="{{ old('subtitle') }}" maxlength="255" data-character-count required><small class="char-counter" data-character-output="subtitle">0 caratteri</small>@error('subtitle')<span class="field-error">{{ $message }}</span>@enderror</div>
+                </section>
+                <section class="surface-card form-section"><div class="form-section-heading"><span>02</span><div><h2>Contenuto</h2><p>Il contenuto viene sanificato lato server prima del salvataggio.</p></div></div><div class="form-group"><label for="body">Corpo dell'articolo <span aria-hidden="true">*</span></label><textarea name="body" class="form-control @error('body') is-invalid @enderror" id="body" rows="16" required>{{ old('body') }}</textarea>@error('body')<span class="field-error">{{ $message }}</span>@enderror</div></section>
                 <livewire:latest-news />
             </div>
-        </div>
-    </div>
+            <aside class="editor-sidebar">
+                <section class="surface-card form-section"><div class="form-section-heading compact"><span>03</span><div><h2>Classificazione</h2></div></div><div class="form-group"><label for="category">Categoria <span aria-hidden="true">*</span></label><select name="category" id="category" class="form-select @error('category') is-invalid @enderror" required><option value="" disabled selected>Scegli una categoria</option>@foreach($categories as $category)<option value="{{ $category->id }}" @selected(old('category') == $category->id)>{{ $category->name }}</option>@endforeach</select>@error('category')<span class="field-error">{{ $message }}</span>@enderror</div><div class="form-group"><label for="tags">Tag</label><input type="text" name="tags" class="form-control @error('tags') is-invalid @enderror" id="tags" value="{{ old('tags') }}" placeholder="phishing, cloud, privacy"><small>Separa i tag con una virgola.</small>@error('tags')<span class="field-error">{{ $message }}</span>@enderror</div></section>
+                <section class="surface-card form-section"><div class="form-section-heading compact"><span>04</span><div><h2>Immagine</h2></div></div><div class="form-group"><label for="image">Copertina <span aria-hidden="true">*</span></label><input type="file" name="image" class="form-control @error('image') is-invalid @enderror" id="image" accept="image/*" required><small>Usa un'immagine leggibile anche nel formato card.</small>@error('image')<span class="field-error">{{ $message }}</span>@enderror</div></section>
+                <div class="editor-submit"><button type="submit" class="btn btn-primary btn-lg w-100">Invia in revisione</button><a href="{{ route('writer.dashboard') }}" class="btn btn-ghost w-100">Annulla</a></div>
+            </aside>
+        </form>
+    </div></section>
 </x-layout>

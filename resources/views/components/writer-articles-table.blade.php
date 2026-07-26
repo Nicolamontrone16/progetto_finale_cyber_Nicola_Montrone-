@@ -1,38 +1,7 @@
-<table class="table table-striped table-hover">
-    <thead class="table-dark">
-        <tr>
-            <th scope="col">#</th>
-            <th scope="col">Title</th>
-            <th scope="col">Subtitle</th>
-            <th scope="col">Category</th>
-            <th scope="col">Tags</th>
-            <th scope="col">Created at</th>
-            <th scope="col">Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach ($articles as $article)
-            <tr>
-                <th scope="row">{{$article->id}}</th>
-                <td>{{$article->title}}</td>
-                <td>{{$article->subtitle}}</td>
-                <td>{{$article->category->name ?? 'Nessuna categoria'}}</td>
-                <td>
-                    @foreach ($article->tags as $tag)
-                        #{{ $tag->name }}
-                    @endforeach
-                </td>
-                <td>{{$article->created_at->format('d/m/Y')}}</td>
-                <td>
-                    <a href="{{route('articles.show', $article)}}" class="btn btn-secondary">Read</a>
-                    <a href="{{route('articles.edit', $article)}}" class="btn btn-warning text-white">Edit</a>
-                    <form action="{{route('articles.destroy', $article)}}" method="POST" class="d-inline">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-danger">Delete</button>
-                    </form>
-                </td>
-            </tr>
-        @endforeach
-    </tbody>
-</table>
+@if($articles->isEmpty())
+    <x-empty-state title="Nessun articolo in questa sezione" message="Gli articoli compariranno qui quando disponibili." />
+@else
+<div class="table-responsive data-table-wrap"><table class="table data-table"><thead><tr><th scope="col">Articolo</th><th scope="col">Categoria</th><th scope="col">Tag</th><th scope="col">Data</th><th scope="col">Stato</th><th scope="col" class="text-end">Azioni</th></tr></thead><tbody>
+@foreach($articles as $article)<tr><td><strong>{{ $article->title }}</strong><small>{{ $article->subtitle }}</small></td><td>{{ $article->category->name ?? 'Nessuna' }}</td><td><div class="tag-list compact">@foreach($article->tags->take(2) as $tag)<span>#{{ $tag->name }}</span>@endforeach</div></td><td>{{ $article->created_at->format('d.m.Y') }}</td><td>@if(is_null($article->is_accepted))<x-status-badge status="in revisione" />@elseif($article->is_accepted)<x-status-badge status="pubblicato" />@else<x-status-badge status="rifiutato" />@endif</td><td><div class="table-actions"><a href="{{ route('articles.show', $article) }}" class="btn btn-ghost btn-sm">Apri</a><a href="{{ route('articles.edit', $article) }}" class="btn btn-outline-primary btn-sm">Modifica</a><form action="{{ route('articles.destroy', $article) }}" method="POST" data-confirm="Eliminare definitivamente questo articolo?">@csrf @method('DELETE')<button type="submit" class="btn btn-danger btn-sm">Elimina</button></form></div></td></tr>@endforeach
+</tbody></table></div>
+@endif

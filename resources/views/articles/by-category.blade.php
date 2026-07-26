@@ -1,35 +1,7 @@
-<x-layout>
-    <div class="container-fluid p-5 bg-secondary-subtle text-center">
-        <div class="row justify-content-center">
-            <div class="col-12">
-                <h1 class="display-1 text-capitalize">{{ $category->name }}</h1>
-            </div>
-        </div>
-    </div>
-    <div class="container my-5">
-        <div class="row justify-content-evenly">
-            @foreach ($articles as $article)
-                <div class="col-12 col-md-3">
-                    <div class="card" style="width: 18rem;">
-                        <img src="{{ Storage::url($article->image) }}" class="card-img-top" 
-                            alt="Immagine dell'articolo: {{ $article->title }}">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ $article->title }}</h5>
-                            <p class="card-subtitle">{{ $article->subtitle }}</p>
-                            <p class="small text-muted my-0">
-                                @foreach ($article->tags as $tag)
-                                    #{{ $tag->name }}
-                                @endforeach
-                            </p>
-                        </div>
-                        <div class="card-footer d-flex justify-content-between align-items-center">
-                            <p>Created at {{$article->created_at->format('d/m/Y')}} <br> 
-                                By <a class="text-muted" href="{{ route('articles.byUser', $article->user) }}">{{$article->user->name}}</a></p>
-                            <a href="{{route('articles.show', $article)}}" class="btn btn-outline-secondary">Read more</a>
-                        </div>
-                    </div>
-                </div>
-            @endforeach
-        </div>
-    </div>
+<x-layout :title="$category->name">
+    <section class="content-section"><div class="container">
+        <nav class="breadcrumb-nav" aria-label="Breadcrumb"><a href="{{ route('articles.index') }}">Articoli</a><span aria-hidden="true">/</span><span aria-current="page">{{ $category->name }}</span></nav>
+        <x-page-header eyebrow="Categoria" :title="$category->name" description="Approfondimenti selezionati per questo argomento." />
+        <div class="article-grid">@forelse ($articles as $article)<x-article-card :article="$article" />@empty<x-empty-state title="Categoria ancora vuota" message="Non ci sono articoli pubblicati in questa categoria." />@endforelse</div>
+    </div></section>
 </x-layout>

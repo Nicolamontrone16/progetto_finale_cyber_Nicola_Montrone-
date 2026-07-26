@@ -1,53 +1,7 @@
-<table class="table table-striped table-hover">
-    <thead class="table-dark">
-        <tr>
-            <th scope="col">#</th>
-            <th scope="col">Tag name</th>
-            <th scope="col">Related articles number</th>
-            <th scope="col">Update</th>
-            <th scope="col">Delete</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach ($metaInfos as $metaInfo)
-            <tr>
-                <th scope="row">{{$metaInfo->id}}</th>
-                <td>{{$metaInfo->name}}</td>
-                <td>{{count($metaInfo->articles)}}</td>
-                @if ($metaType == 'tags')
-                    <td>
-                        <form action="{{route('admin.editTag', ['tag' => $metaInfo])}}" method="POST">
-                            @csrf
-                            @method('PUT')
-                            <input type="text" value="{{$metaInfo->name}}" name="name" placeholder="Nuovo nome tag" class="form-control w-50 d-inline">
-                            <button type="submit" class="btn btn-secondary">Modifica</button>
-                        </form>
-                    </td>
-                    <td>
-                        <form action="{{route('admin.deleteTag', ['tag' => $metaInfo])}}" method="POST">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-danger">Delete</button>
-                        </form>
-                    </td>
-                @else
-                    <td>
-                        <form action="{{route('admin.editCategory', ['category' => $metaInfo])}}" method="POST">
-                            @csrf
-                            @method('PUT')
-                            <input type="text" value="{{$metaInfo->name}}" name="name" placeholder="Nuovo nome categoria" class="form-control w-50 d-inline">
-                            <button type="submit" class="btn btn-secondary">Update</button>
-                        </form>
-                    </td>
-                    <td>
-                        <form action="{{route('admin.deleteCategory', ['category' => $metaInfo])}}" method="POST">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-danger">Delete</button>
-                        </form>
-                    </td>
-                @endif
-            </tr>
-        @endforeach
-    </tbody>
-</table>
+@if($metaInfos->isEmpty())
+    <x-empty-state title="Nessun elemento" message="Aggiungi il primo elemento usando il modulo qui sopra." />
+@else
+<div class="table-responsive data-table-wrap"><table class="table data-table"><thead><tr><th scope="col">ID</th><th scope="col">Nome</th><th scope="col">Articoli</th><th scope="col">Modifica</th><th scope="col" class="text-end">Elimina</th></tr></thead><tbody>
+@foreach($metaInfos as $metaInfo)<tr><td><span class="mono-id">#{{ $metaInfo->id }}</span></td><td><strong>{{ $metaInfo->name }}</strong></td><td>{{ count($metaInfo->articles) }}</td>@if($metaType === 'tags')<td><form action="{{ route('admin.editTag', ['tag' => $metaInfo]) }}" method="POST" class="inline-edit">@csrf @method('PUT')<label class="visually-hidden" for="tag-{{ $metaInfo->id }}">Nuovo nome tag</label><input id="tag-{{ $metaInfo->id }}" type="text" value="{{ $metaInfo->name }}" name="name" class="form-control"><button type="submit" class="btn btn-outline-primary btn-sm">Salva</button></form></td><td><form action="{{ route('admin.deleteTag', ['tag' => $metaInfo]) }}" method="POST" class="table-actions" data-confirm="Eliminare questo tag?">@csrf @method('DELETE')<button type="submit" class="btn btn-danger btn-sm">Elimina</button></form></td>@else<td><form action="{{ route('admin.editCategory', ['category' => $metaInfo]) }}" method="POST" class="inline-edit">@csrf @method('PUT')<label class="visually-hidden" for="category-{{ $metaInfo->id }}">Nuovo nome categoria</label><input id="category-{{ $metaInfo->id }}" type="text" value="{{ $metaInfo->name }}" name="name" class="form-control"><button type="submit" class="btn btn-outline-primary btn-sm">Salva</button></form></td><td><form action="{{ route('admin.deleteCategory', ['category' => $metaInfo]) }}" method="POST" class="table-actions" data-confirm="Eliminare questa categoria?">@csrf @method('DELETE')<button type="submit" class="btn btn-danger btn-sm">Elimina</button></form></td>@endif</tr>@endforeach
+</tbody></table></div>
+@endif

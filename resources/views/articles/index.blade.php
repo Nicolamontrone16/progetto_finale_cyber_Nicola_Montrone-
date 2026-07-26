@@ -1,18 +1,9 @@
-<x-layout>
-    <div class="container-fluid p-5 bg-secondary-subtle text-center">
-        <div class="row justify-content-center">
-            <div class="col-12">
-                <h1 class="display-1">Latest articles</h1>
-            </div>
+<x-layout title="Articoli">
+    <section class="content-section"><div class="container">
+        <x-page-header eyebrow="Knowledge base" title="Tutti gli articoli" description="Analisi tecniche, notizie e prospettive sul panorama della sicurezza digitale." />
+        <div class="article-grid">
+            @forelse ($articles as $article)<x-article-card :article="$article" />
+            @empty<x-empty-state title="Archivio in aggiornamento" message="Non ci sono ancora articoli disponibili." />@endforelse
         </div>
-    </div>
-    <div class="container my-5">
-        <div class="row justify-content-evenly">
-            @foreach ($articles as $article)
-                <div class="col-12 col-md-3">
-                    <x-article-card :article="$article"/>
-                </div>
-            @endforeach
-        </div>
-    </div>
+    </div></section>
 </x-layout>

@@ -1,105 +1,16 @@
-<x-layout>
-    <div class="container-fluid p-5 bg-secondary-subtle text-center">
-        <div class="row justify-content-center">
-            <div class="col-12">
-                <h1 class="display-1">Welcome back, admin: {{Auth::user()->name}}</h1>
-            </div>
+<x-layout title="Dashboard admin">
+    <section class="content-section"><div class="container">
+        <x-page-header eyebrow="Security operations" :title="'Dashboard admin · ' . Auth::user()->name" description="Ruoli, tassonomie e dati amministrativi in un unico spazio protetto." />
+        <div class="metric-grid"><div class="metric-card metric-accent"><span>Richieste admin</span><strong>{{ $adminRequests->count() }}</strong></div><div class="metric-card"><span>Richieste revisore</span><strong>{{ $revisorRequests->count() }}</strong></div><div class="metric-card"><span>Richieste writer</span><strong>{{ $writerRequests->count() }}</strong></div><div class="metric-card"><span>Tassonomie</span><strong>{{ $categories->count() + $tags->count() }}</strong></div></div>
+        <div class="dashboard-stack">
+            <section class="dashboard-section"><div class="section-heading"><div><p class="eyebrow">Privilege management</p><h2>Richieste ruolo amministratore</h2></div></div><x-requests-table :roleRequests="$adminRequests" role="admin" /></section>
+            <section class="dashboard-section"><div class="section-heading"><h2>Richieste ruolo revisore</h2></div><x-requests-table :roleRequests="$revisorRequests" role="revisor" /></section>
+            <section class="dashboard-section"><div class="section-heading"><h2>Richieste ruolo writer</h2></div><x-requests-table :roleRequests="$writerRequests" role="writer" /></section>
+            <section class="dashboard-section"><div class="section-heading"><div><p class="eyebrow">Content taxonomy</p><h2>Tag</h2></div><form action="{{ route('admin.storeTag') }}" method="POST" class="quick-create">@csrf<label class="visually-hidden" for="new-tag">Nuovo tag</label><input id="new-tag" type="text" name="name" class="form-control" placeholder="Nuovo tag" required><button type="submit" class="btn btn-primary">Aggiungi</button></form></div><x-metainfo-table :metaInfos="$tags" metaType="tags" /></section>
+            <section class="dashboard-section"><div class="section-heading"><div><p class="eyebrow">Content taxonomy</p><h2>Categorie</h2></div><form action="{{ route('admin.storeCategory') }}" method="POST" class="quick-create">@csrf<label class="visually-hidden" for="new-category">Nuova categoria</label><input id="new-category" type="text" name="name" class="form-control" placeholder="Nuova categoria" required><button type="submit" class="btn btn-primary">Aggiungi</button></form></div><x-metainfo-table :metaInfos="$categories" metaType="categorie" /></section>
+            <section class="dashboard-section financial-section"><div class="section-heading"><div><p class="eyebrow">Restricted · Admin only</p><h2>Dati Financial App</h2><p>Dati recuperati esclusivamente dal servizio interno autorizzato.</p></div><span class="status-badge status-warning">Riservato</span></div>
+                @if(!empty($financialData['users']))<div class="table-responsive data-table-wrap"><table class="table data-table"><thead><tr><th>Cliente</th><th>Saldo</th><th>Ultime operazioni</th><th>Carta</th></tr></thead><tbody>@foreach($financialData['users'] as $financialUser)<tr><td><strong>{{ $financialUser['username'] }}</strong></td><td>{{ $financialUser['account_balance'] }}</td><td><ul class="transaction-list">@foreach($financialUser['transactions'] as $transaction)<li><time>{{ $transaction['date'] }}</time><span>{{ $transaction['description'] }}</span><strong>{{ $transaction['amount'] }}</strong></li>@endforeach</ul></td><td><span class="masked-card">•••• {{ \Illuminate\Support\Str::substr($financialUser['credit_card']['card_number'], -4) }}</span><small>Scadenza {{ $financialUser['credit_card']['expiry_date'] }}</small></td></tr>@endforeach</tbody></table></div>@else<x-empty-state title="Dati non disponibili" message="Il servizio finanziario non ha restituito dati visualizzabili." />@endif
+            </section>
         </div>
-    </div>
-    <div class="container my-5">
-        <div class="row justify-content-center">
-            <div class="col-12">
-                <h2>Admin role requests</h2>
-                <x-requests-table :roleRequests="$adminRequests" role="admin"/>
-            </div>
-        </div>
-    </div>
-    <div class="container my-5">
-        <div class="row justify-content-center">
-            <div class="col-12">
-                <h2>Revisor role requests</h2>
-                <x-requests-table :roleRequests="$revisorRequests" role="revisor"/>
-            </div>
-        </div>
-    </div>
-    <div class="container my-5">
-        <div class="row justify-content-center">
-            <div class="col-12">
-                <h2>Writer role requests</h2>
-                <x-requests-table :roleRequests="$writerRequests" role="writer"/>
-            </div>
-        </div>
-    </div>
-    <hr>
-    <div class="container my-5">
-        <div class="row justify-content-center">
-            <div class="col-12">
-                <div class="d-flex justify-content-between">
-                    <h2>Tags</h2>
-                    <form action="{{route('admin.storeTag')}}" method="POST" class="w-50 d-flex m-3">
-                        @csrf
-                        <input type="text" name="name" class="form-control me-2" placeholder="Insert new tag">
-                        <button type="submit" class="btn btn-outline-secondary">Add</button>
-                    </form>
-                </div>
-                <x-metainfo-table :metaInfos="$tags" metaType="tags"/>
-            </div>
-        </div>
-    </div>
-    <div class="container my-5">
-        <div class="row justify-content-center">
-            <div class="col-12">
-                <div class="d-flex justify-content-between">
-                    <h2>Categories</h2>
-                    <form action="{{route('admin.storeCategory')}}" method="POST" class="w-50 d-flex m-3">
-                        @csrf
-                        <input type="text" name="name" class="form-control me-2" placeholder="Insert new category">
-                        <button type="submit" class="btn btn-outline-secondary">Add</button>
-                    </form>
-                </div>
-                <x-metainfo-table :metaInfos="$categories" metaType="categorie"/>
-            </div>
-        </div>
-    </div>
-    <div class="container my-5">
-        <div class="row justify-content-center">
-            <div class="col-12">
-                
-                    <h2>Financial Data</h2>
-                    <table class="table table-striped table-hover">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Customer Name</th>
-                                <th>Account Balance</th>
-                                <th>Latest transactions</th>
-                                <th>Credit Card Info</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                          
-                            @foreach($financialData['users'] as $user)
-
-                                <tr>
-                                    <td>{{ $user['username'] }}</td>
-                                    <td>{{ $user['account_balance'] }}</td>
-                                    <td>
-                                        <ul>
-                                            @foreach($user['transactions'] as $transaction)
-                                                <li>{{ $transaction['date'] }}: {{ $transaction['description'] }} ({{ $transaction['amount'] }})</li>
-                                            @endforeach
-                                        </ul>
-                                    </td>
-                                    <td>
-                                        <p>Card number: {{ $user['credit_card']['card_number'] }}</p>
-                                        <p>Expire date: {{ $user['credit_card']['expiry_date'] }}</p>
-                                        <p>CVV: {{ $user['credit_card']['cvv'] }}</p>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                
-            </div>
-        </div>
-    </div>
+    </div></section>
 </x-layout>

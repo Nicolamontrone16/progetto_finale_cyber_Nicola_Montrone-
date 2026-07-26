@@ -6,6 +6,10 @@ use App\Http\Controllers\PublicController;
 use App\Http\Controllers\WriterController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\RevisorController;
+use App\Http\Controllers\ProfileController;
+
+// Compatibilità temporanea con i vecchi URL del selettore lingua rimosso.
+Route::get('/language/{locale}', fn () => redirect()->route('homepage'));
 
 // Public routes
 Route::get('/', [PublicController::class, 'homepage'])->name('homepage');
@@ -19,6 +23,11 @@ Route::get('/articles/user/{user}', [ArticleController::class, 'byUser'])->name(
 Route::get('/articles/search', [ArticleController::class, 'articleSearch'])
     ->middleware('block.suspicious')
     ->name('articles.search');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+});
 
 // Writer routes
 Route::middleware('writer')->group(function(){

@@ -1,75 +1,16 @@
-<x-layout>
-    <div class="container-fluid p-5 bg-secondary-subtle text-center">
-        <div class="row justify-content-center">
-            <div class="col-12">
-                <h1 class="display-1">Edit article</h1>
+<x-layout title="Modifica articolo">
+    <section class="content-section"><div class="container">
+        <x-page-header eyebrow="Writer studio" title="Modifica articolo" description="Aggiorna il contenuto mantenendo chiarezza, fonti e qualità editoriale." />
+        <form action="{{ route('articles.update', $article) }}" method="POST" enctype="multipart/form-data" class="editor-layout">@csrf @method('PUT')
+            <div class="editor-main">
+                <section class="surface-card form-section"><div class="form-section-heading"><span>01</span><div><h2>Informazioni principali</h2><p>Aggiorna titolo e sottotitolo.</p></div></div><div class="form-group"><label for="title">Titolo <span aria-hidden="true">*</span></label><input type="text" name="title" class="form-control @error('title') is-invalid @enderror" id="title" value="{{ old('title', $article->title) }}" maxlength="255" data-character-count required><small class="char-counter" data-character-output="title">0 caratteri</small>@error('title')<span class="field-error">{{ $message }}</span>@enderror</div><div class="form-group"><label for="subtitle">Sottotitolo <span aria-hidden="true">*</span></label><input type="text" name="subtitle" class="form-control @error('subtitle') is-invalid @enderror" id="subtitle" value="{{ old('subtitle', $article->subtitle) }}" maxlength="255" data-character-count required><small class="char-counter" data-character-output="subtitle">0 caratteri</small>@error('subtitle')<span class="field-error">{{ $message }}</span>@enderror</div></section>
+                <section class="surface-card form-section"><div class="form-section-heading"><span>02</span><div><h2>Contenuto</h2><p>La stessa sanitizzazione di sicurezza viene applicata anche alle modifiche.</p></div></div><div class="form-group"><label for="body">Corpo dell'articolo <span aria-hidden="true">*</span></label><textarea name="body" class="form-control @error('body') is-invalid @enderror" id="body" rows="16" required>{{ old('body', $article->body) }}</textarea>@error('body')<span class="field-error">{{ $message }}</span>@enderror</div></section>
             </div>
-        </div>
-    </div>
-    <div class="container my-5">
-        <div class="row justify-content-center">
-            <div class="col-12 col-md-8">
-                <form action="{{route('articles.update', $article)}}" method="POST" class="card p-5 shadow" enctype="multipart/form-data">
-                    @csrf
-                    @method('PUT')
-                    <div class="mb-3">
-                        <label for="title" class="form-label">Title</label>
-                        <input type="text" name="title" class="form-control" id="title" value="{{$article->title}}">
-                        @error('title')
-                            <span class="text-danger">{{$message}}</span>
-                        @enderror
-                    </div>
-                    <div class="mb-3">
-                        <label for="subtitle" class="form-label">Subtitle</label>
-                        <input type="text" name="subtitle" class="form-control" id="subtitle" value="{{$article->subtitle}}">
-                        @error('subtitle')
-                            <span class="text-danger">{{$message}}</span>
-                        @enderror
-                    </div>
-                    <div class="mb-3">
-                        <label>Current Image</label>
-                        <img src="{{Storage::url($article->image)}}" alt="{{$article->title}}" class="w-50 d-flex">
-                    </div>
-                    <div class="mb-3">
-                        <label for="image" class="form-label">New Image</label>
-                        <input type="file" name="image" class="form-control" id="image">
-                        @error('image')
-                            <span class="text-danger">{{$message}}</span>
-                        @enderror
-                    </div>
-                    <div class="mb-3">
-                        <label for="category" class="form-label">Category</label>
-                        <select name="category" id="category" class="form-control">
-                            <option selected disabled>Choose category</option>
-                            @foreach ($categories as $category)
-                                <option value="{{$category->id}}" @if($article->category_id == $category->id) selected @endif>{{$category->name}}</option>
-                            @endforeach
-                        </select>
-                        @error('category')
-                            <span class="text-danger">{{$message}}</span>
-                        @enderror
-                    </div>
-                    <div class="mb-3">
-                        <label for="tags" class="form-label">Tags</label>
-                        <input type="text" name="tags" class="form-control" id="tags" value="{{$article->tags->implode('name', ', ')}}">
-                        <span class="small text-muted fst-italic">Comma separated tags please</span>
-                        @error('tags')
-                            <span class="text-danger">{{$message}}</span>
-                        @enderror
-                    </div>
-                    <div class="mb-3">
-                        <label for="body" class="form-label">Text</label>
-                        <textarea name="body" class="form-control" id="body" cols="30" rows="7">{{$article->body}}</textarea>
-                        @error('body')
-                            <span class="text-danger">{{$message}}</span>
-                        @enderror
-                    </div>
-                    <div class="mt-3 d-flex justify-content-center flex-column align-items-center">
-                        <button type="submit" class="btn btn-outline-secondary">Edit</button>
-                        <a href="{{route('homepage')}}" class="text-secondary mt-2">Back to home</a>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+            <aside class="editor-sidebar">
+                <section class="surface-card form-section"><div class="form-section-heading compact"><span>03</span><div><h2>Classificazione</h2></div></div><div class="form-group"><label for="category">Categoria</label><select name="category" id="category" class="form-select @error('category') is-invalid @enderror"><option value="" disabled>Scegli una categoria</option>@foreach($categories as $category)<option value="{{ $category->id }}" @selected(old('category', $article->category_id) == $category->id)>{{ $category->name }}</option>@endforeach</select>@error('category')<span class="field-error">{{ $message }}</span>@enderror</div><div class="form-group"><label for="tags">Tag</label><input type="text" name="tags" class="form-control @error('tags') is-invalid @enderror" id="tags" value="{{ old('tags', $article->tags->implode('name', ', ')) }}"><small>Separa i tag con una virgola.</small>@error('tags')<span class="field-error">{{ $message }}</span>@enderror</div></section>
+                <section class="surface-card form-section"><div class="form-section-heading compact"><span>04</span><div><h2>Immagine</h2></div></div>@if($article->image)<img src="{{ Storage::url($article->image) }}" alt="Copertina attuale di {{ $article->title }}" class="editor-current-image">@endif<div class="form-group"><label for="image">Sostituisci copertina</label><input type="file" name="image" class="form-control @error('image') is-invalid @enderror" id="image" accept="image/*">@error('image')<span class="field-error">{{ $message }}</span>@enderror</div></section>
+                <div class="editor-submit"><button type="submit" class="btn btn-primary btn-lg w-100">Salva modifiche</button><a href="{{ route('writer.dashboard') }}" class="btn btn-ghost w-100">Annulla</a></div>
+            </aside>
+        </form>
+    </div></section>
 </x-layout>

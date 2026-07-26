@@ -6,6 +6,7 @@ use App\Models\Tag;
 use App\Models\User;
 use App\Models\Article;
 use App\Models\Category;
+use App\Services\ArticleContentSanitizer;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Validation\ValidationException;
 
 class ArticleController extends Controller implements HasMiddleware
 {
@@ -42,26 +44,37 @@ class ArticleController extends Controller implements HasMiddleware
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, ArticleContentSanitizer $sanitizer)
     {
-        $request->validate([
+        $validated = $request->validate([
             'title' => 'required|unique:articles|min:5',
             'subtitle' => 'required|min:5',
-            'body' => 'required|min:10',
+            'body' => 'required|string|min:10|max:50000',
             'image' => 'required|image',
             'category' => 'required',
             'tags' => 'required'
         ]);
 
+        $dangerousContentDetected = $sanitizer->containsClearlyDangerousContent($validated['body']);
+        $safeBody = $sanitizer->sanitize($validated['body']);
+
+        if (! $sanitizer->hasMeaningfulText($safeBody)) {
+            throw ValidationException::withMessages([
+                'body' => 'Il contenuto non contiene testo valido.',
+            ]);
+        }
+
         $article = Article::create([
-            'title' => $request->title,
-            'subtitle' => $request->subtitle,
-            'body' => $request->body,
+            'title' => $validated['title'],
+            'subtitle' => $validated['subtitle'],
+            'body' => $safeBody,
             'image' => $request->file('image')->store('public/images'),
             'category_id' => $request->category,
             'user_id' => Auth::user()->id,
             'slug' => Str::slug($request->title),
         ]);
+
+        $this->logSanitizedContent($request, $article, $validated['body'], $safeBody, $dangerousContentDetected);
         
         $tags = explode(',', $request->tags);
 
@@ -91,9 +104,11 @@ class ArticleController extends Controller implements HasMiddleware
     /**
      * Display the specified resource.
      */
-    public function show(Article $article)
+    public function show(Article $article, ArticleContentSanitizer $sanitizer)
     {
-        return view('articles.show', compact('article'));
+        $safeBody = $sanitizer->sanitize($article->body);
+
+        return view('articles.show', compact('article', 'safeBody'));
     }
 
     /**
@@ -110,23 +125,32 @@ class ArticleController extends Controller implements HasMiddleware
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Article $article)
+    public function update(Request $request, Article $article, ArticleContentSanitizer $sanitizer)
     {
-        $request->validate([
+        $validated = $request->validate([
             'title' => 'required|min:5|unique:articles,title,' . $article->id,
             'subtitle' => 'required|min:5',
-            'body' => 'required|min:10',
+            'body' => 'required|string|min:10|max:50000',
             'image' => 'image',
             'category' => 'required',
             'tags' => 'required'
         ]);
 
+        $dangerousContentDetected = $sanitizer->containsClearlyDangerousContent($validated['body']);
+        $safeBody = $sanitizer->sanitize($validated['body']);
+
+        if (! $sanitizer->hasMeaningfulText($safeBody)) {
+            throw ValidationException::withMessages([
+                'body' => 'Il contenuto non contiene testo valido.',
+            ]);
+        }
+
         $originalAttributes = $article->getAttributes();
 
         $article->update([
-            'title' => $request->title,
-            'subtitle' => $request->subtitle,
-            'body' => $request->body,
+            'title' => $validated['title'],
+            'subtitle' => $validated['subtitle'],
+            'body' => $safeBody,
             'category_id' => $request->category,
             'slug' => Str::slug($request->title),
         ]);
@@ -155,6 +179,7 @@ class ArticleController extends Controller implements HasMiddleware
         $tagChanges = $article->tags()->sync($newTags);
 
         $article->refresh();
+        $this->logSanitizedContent($request, $article, $validated['body'], $safeBody, $dangerousContentDetected);
         $changedFields = [];
 
         foreach ($article->getAttributes() as $field => $value) {
@@ -220,5 +245,29 @@ class ArticleController extends Controller implements HasMiddleware
         $query = $request->input('query');
         $articles = Article::search($query)->where('is_accepted', true)->orderBy('created_at', 'desc')->get();
         return view('articles.search-index', compact('articles', 'query'));
+    }
+
+    private function logSanitizedContent(
+        Request $request,
+        Article $article,
+        string $originalBody,
+        string $safeBody,
+        bool $dangerousContentDetected
+    ): void {
+        if (! $dangerousContentDetected) {
+            return;
+        }
+
+        Log::warning('Potentially dangerous article content sanitized', [
+            'event' => 'article_xss_content_sanitized',
+            'actor_user_id' => $request->user()?->id,
+            'article_id' => $article->id,
+            'ip_address' => $request->ip(),
+            'route' => $request->route()?->getName() ?? $request->path(),
+            'removed_content_detected' => true,
+            'original_length' => strlen($originalBody),
+            'sanitized_length' => strlen($safeBody),
+            'result' => 'sanitized',
+        ]);
     }
 }
