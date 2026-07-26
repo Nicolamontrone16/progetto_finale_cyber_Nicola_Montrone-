@@ -1,26 +1,27 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# URL della rotta da attaccare
-URL="http://external.user:8000/articles/search"
+set -u
 
-# Generare un grande payload casuale
-LARGE_PAYLOAD=$(head -c 100000 < /dev/urandom | base64)
+URL="${1:-http://127.0.0.1:8000/articles/search}"
+NUM_REQUESTS="${NUM_REQUESTS:-20}"
+PARALLEL_REQUESTS="${PARALLEL_REQUESTS:-5}"
 
-# Numero di richieste da inviare
-NUM_REQUESTS=5000
+echo "Target locale/autorizzato: $URL"
+echo "Baseline (codice HTTP e tempo totale):"
+curl --silent --output /dev/null --get \
+    --data-urlencode "query=baseline" \
+    --write-out "HTTP %{http_code} - %{time_total}s\n" \
+    "$URL"
 
-# Funzione per eseguire la richiesta
-send_request() {
-    curl -G "$URL" --data-urlencode "query=$LARGE_PAYLOAD" > /dev/null 2>&1
-}
+echo "Burst controllato: $NUM_REQUESTS richieste, concorrenza $PARALLEL_REQUESTS"
+seq "$NUM_REQUESTS" | xargs -P "$PARALLEL_REQUESTS" -I REQUEST_NUMBER \
+    curl --silent --output /dev/null --get \
+        --data-urlencode "query=dos-simulation-REQUEST_NUMBER" \
+        --write-out "HTTP %{http_code} - %{time_total}s\n" \
+        "$URL"
 
-echo "Inizio attacco DoS simulato..."
-
-# Loop per inviare tante richieste
-for ((i=1; i<=NUM_REQUESTS; i++))
-do
-    send_request &
-    echo "Richiesta $i inviata"
-done
-
-echo "Attacco DoS simulato completato!"
+echo "Dopo il burst (deve restituire HTTP 429 durante il blocco):"
+curl --silent --output /dev/null --get \
+    --data-urlencode "query=after-burst" \
+    --write-out "HTTP %{http_code} - %{time_total}s\n" \
+    "$URL"

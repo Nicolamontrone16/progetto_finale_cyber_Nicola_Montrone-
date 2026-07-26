@@ -54,23 +54,35 @@ class AdminController extends Controller
         return view('admin.dashboard', compact('adminRequests', 'revisorRequests', 'writerRequests','financialData'));
     }
 
-    public function setAdmin(User $user){
+    public function setAdmin(Request $request, User $user){
+        $this->ensureCanChangeRole($request, $user, 'admin');
+
         $user->is_admin = true;
         $user->save();
+
+        $this->logRoleAssigned($request, $user, 'admin');
 
         return redirect(route('admin.dashboard'))->with('message', "$user->name is now administrator");
     }
 
-    public function setRevisor(User $user){
+    public function setRevisor(Request $request, User $user){
+        $this->ensureCanChangeRole($request, $user, 'revisor');
+
         $user->is_revisor = true;
         $user->save();
+
+        $this->logRoleAssigned($request, $user, 'revisor');
 
         return redirect(route('admin.dashboard'))->with('message', "$user->name is now revisor");
     }
 
-    public function setWriter(User $user){
+    public function setWriter(Request $request, User $user){
+        $this->ensureCanChangeRole($request, $user, 'writer');
+
         $user->is_writer = true;
         $user->save();
+
+        $this->logRoleAssigned($request, $user, 'writer');
 
         return redirect(route('admin.dashboard'))->with('message', "$user->name is now writer");
     }
@@ -125,5 +137,41 @@ class AdminController extends Controller
         ]);
         
         return redirect()->back()->with('message', 'Tag successfully created');
+    }
+
+    private function ensureCanChangeRole(Request $request, User $targetUser, string $role): void
+    {
+        if (Auth::check() && Auth::user()->is_admin) {
+            return;
+        }
+
+        Log::warning('Unauthorized role change attempt', [
+            'event' => 'unauthorized_role_change',
+            'actor_user_id' => Auth::id(),
+            'target_user_id' => $targetUser->id,
+            'role' => $role,
+            'action' => 'assign',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'route' => $request->route()?->getName() ?? $request->path(),
+            'method' => $request->method(),
+            'result' => 'denied',
+        ]);
+
+        abort(403);
+    }
+
+    private function logRoleAssigned(Request $request, User $targetUser, string $role): void
+    {
+        Log::notice('User role assigned', [
+            'event' => 'role_assigned',
+            'actor_user_id' => Auth::id(),
+            'target_user_id' => $targetUser->id,
+            'role' => $role,
+            'action' => 'assign',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'result' => 'success',
+        ]);
     }
 }

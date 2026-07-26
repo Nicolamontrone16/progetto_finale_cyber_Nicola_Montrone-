@@ -76,6 +76,15 @@ class ArticleController extends Controller implements HasMiddleware
             $article->tags()->attach($newTag);
         }
 
+        Log::info('Article created', [
+            'event' => 'article_created',
+            'actor_user_id' => $request->user()->id,
+            'article_id' => $article->id,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'result' => 'success',
+        ]);
+
         return redirect(route('homepage'))->with('message', 'Articolo creato con successo');
     }
 
@@ -112,6 +121,8 @@ class ArticleController extends Controller implements HasMiddleware
             'tags' => 'required'
         ]);
 
+        $originalAttributes = $article->getAttributes();
+
         $article->update([
             'title' => $request->title,
             'subtitle' => $request->subtitle,
@@ -141,7 +152,32 @@ class ArticleController extends Controller implements HasMiddleware
             ]);
             $newTags[] = $newTag->id;
         }
-        $article->tags()->sync($newTags);
+        $tagChanges = $article->tags()->sync($newTags);
+
+        $article->refresh();
+        $changedFields = [];
+
+        foreach ($article->getAttributes() as $field => $value) {
+            if (array_key_exists($field, $originalAttributes) && $originalAttributes[$field] !== $value) {
+                $changedFields[] = $field;
+            }
+        }
+
+        $changedFields = array_values(array_diff($changedFields, ['updated_at']));
+
+        if ($tagChanges['attached'] || $tagChanges['detached'] || $tagChanges['updated']) {
+            $changedFields[] = 'tags';
+        }
+
+        Log::info('Article updated', [
+            'event' => 'article_updated',
+            'actor_user_id' => $request->user()->id,
+            'article_id' => $article->id,
+            'changed_fields' => array_values(array_unique($changedFields)),
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'result' => 'success',
+        ]);
 
         return redirect(route('writer.dashboard'))->with('message', 'Articolo modificato con successo');
     }
@@ -149,12 +185,23 @@ class ArticleController extends Controller implements HasMiddleware
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Article $article)
+    public function destroy(Request $request, Article $article)
     {
+        $articleId = $article->id;
+
         foreach ($article->tags as $tag) {
             $article->tags()->detach($tag);
         }
         $article->delete();
+
+        Log::info('Article deleted', [
+            'event' => 'article_deleted',
+            'actor_user_id' => $request->user()->id,
+            'article_id' => $articleId,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'result' => 'success',
+        ]);
         
         return redirect()->back()->with('message', 'Articolo cancellato con successo');
     }
